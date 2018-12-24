@@ -1,0 +1,20 @@
+sudo: requared
+services:
+  - docker
+
+before_install:
+  - docker build -t zhdanovskiy/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run zhdanovskiy/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t zhdanovskiy/multi-client ./client
+  - docker build -t zhdanovskiy/multi-nginx ./nginx
+  - docker build -t zhdanovskiy/multi-server ./server
+  - docker build -t zhdanovskiy/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push zhdanovskiy/multi-client
+  - docker push zhdanovskiy/multi-nginx
+  - docker push zhdanovskiy/multi-server
+  - docker push zhdanovskiy/multi-worker
